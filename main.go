@@ -8,10 +8,9 @@ import (
 	"net"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
-	ping "https://github.com/Megabd/mockExam/grpc"
+	ping "github.com/Megabd/mockExam/grpc"
 	"google.golang.org/grpc"
 )
 
@@ -25,7 +24,6 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-
 	p := &peer{
 		id:            ownPort,
 		amountOfPings: make(map[int32]int32),
@@ -34,7 +32,7 @@ func main() {
 		wanted:        false,
 		held:          false,
 		timesAccessed: 0,
-		amount: 		-1,
+		amount:        -1,
 	}
 
 	// Create listener tcp on port ownPort
@@ -83,23 +81,22 @@ type peer struct {
 	wanted        bool
 	held          bool
 	timesAccessed int32
-	amount 			int32
+	amount        int32
+}
+
+func (p *peer) checkCommand(command string) {
+	if command == "Increment" {
+		p.askPermission()
+	} else {
+		fmt.Println("Unknown command, try typing Increment")
+	}
+
 }
 
 func (p *peer) ReturnInfo(ctx context.Context, req *ping.Request) (*ping.ReturnInfoReply, error) {
 
-	rep := &ping.ReturnInfoReply{Id: p.id, TimesAccessed: p.timesAccessed, Wanted: p.wanted, Held: p.held}
+	rep := &ping.ReturnInfoReply{Id: p.id, TimesAccessed: p.timesAccessed, Wanted: p.wanted, Held: p.held, Amount: p.amount}
 	return rep, nil
-}
-
-func (p *peer) checkCommand(command string){
-	if (command == "Increment"){
-		p.askPermission()
-	}
-	else {
-		fmt.Println("Unknown command, try typing Increment")
-	}
-
 }
 
 func (p *peer) askPermission() {
@@ -108,14 +105,13 @@ func (p *peer) askPermission() {
 
 	request := &ping.Request{Id: p.id}
 	for id, client := range p.clients {
-
-
+		id = id
 		returnInfoReply, err := client.ReturnInfo(p.ctx, request)
 		if err != nil {
 			fmt.Println("something went wrong")
 		}
-		if returnInfoReply.amount > p.amount{
-			p.amount = returnInfoReply.amount
+		if returnInfoReply.Amount > p.amount {
+			p.amount = returnInfoReply.Amount
 		}
 		if returnInfoReply.Held {
 			permission = false
@@ -138,10 +134,10 @@ func (p *peer) askPermission() {
 			permission = true
 		}
 	}
-	
+
 	if permission {
 		p.held = true
-		amount = p.increment(p.amount)
+		amount := p.increment(p.amount)
 		p.amount = amount
 		fmt.Println(p.amount)
 
@@ -157,10 +153,9 @@ func (p *peer) askPermission() {
 
 }
 
-func (p *peer) increment (amount int) (newAmount int){
- 
-	newAmount = amount +1;
-	return newAmount;
+func (p *peer) increment(amount int32) (newAmount int32) {
 
+	newAmount = amount + 1
+	return newAmount
 
 }
