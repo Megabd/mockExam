@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package ping;
+option go_package = "https://github.com/Megabd/mockExam;ping";
+
+
+service Ping {
+    rpc returnInfo (Request) returns (returnInfoReply){}
+}
+
+message Request {
+    int32 id = 1;
+}
+
+message Reply {
+    int32 amount = 1;
+}
+
+message returnInfoReply {
+    int32 id = 1;
+    int32 timesAccessed = 2;
+    bool wanted = 3;
+    bool held = 4;
+    int32 amount = 5;
+}
